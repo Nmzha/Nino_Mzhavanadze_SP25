@@ -10,18 +10,18 @@ CREATE TABLE IF NOT EXISTS campaign_data.donor (
     last_name     TEXT NOT NULL,  -- Last name required
     email         TEXT UNIQUE NOT NULL,  -- Unique email ensures no duplicates
     phone         TEXT UNIQUE NOT NULL,  -- Phone is also unique for contact clarity
-    full_name     TEXT GENERATED ALWAYS AS (first_name || ' ' || last_name) STORED NOT NULL,  -- Auto-generated full name
-    record_ts     DATE NOT NULL DEFAULT current_date  -- Timestamp when record is added
+    full_name     TEXT GENERATED ALWAYS AS (first_name || ' ' || last_name) STORED NOT NULL
 );
 
 -- Add timestamp to existing rows (example of ALTER logic for record_ts)
-ALTER TABLE campaign_data.donor ALTER COLUMN record_ts SET DEFAULT current_date;
+ALTER TABLE campaign_data.donor ADD COLUMN record_ts DATE DEFAULT current_date;
 UPDATE campaign_data.donor SET record_ts = current_date WHERE record_ts IS NULL;
 
 -- Sample data for donor
 INSERT INTO campaign_data.donor (first_name, last_name, email, phone) VALUES
 ('Anna', 'Taylor', 'anna.taylor@example.com', '555-0001'),
 ('Brian', 'White', 'brian.white@example.com', '555-0002');
+
 
 -- Campaign Event table
 -- Date checked to be after 2000 for data relevance
@@ -31,11 +31,11 @@ CREATE TABLE IF NOT EXISTS campaign_data.campaign_event (
     event_name    TEXT NOT NULL,
     event_date    DATE NOT NULL CHECK (event_date > '2000-01-01'),
     location      TEXT NOT NULL,
-    budget        NUMERIC(12,2) CHECK (budget >= 0),
-    record_ts     DATE NOT NULL DEFAULT current_date
+    budget        NUMERIC(12,2) CHECK (budget >= 0)
 );
 
-ALTER TABLE campaign_data.campaign_event ALTER COLUMN record_ts SET DEFAULT current_date;
+
+ALTER TABLE campaign_data.campaign_event ADD COLUMN record_ts DATE DEFAULT current_date;
 UPDATE campaign_data.campaign_event SET record_ts = current_date WHERE record_ts IS NULL;
 
 -- Sample data for campaign_event
@@ -50,11 +50,10 @@ CREATE TABLE IF NOT EXISTS campaign_data.contribution (
     donor_id        BIGINT NOT NULL REFERENCES campaign_data.donor(donor_id),
     event_id        BIGINT NOT NULL REFERENCES campaign_data.campaign_event(event_id),
     contribution_date DATE NOT NULL CHECK (contribution_date > '2000-01-01'),
-    amount          NUMERIC(10,2) NOT NULL CHECK (amount >= 0),
-    record_ts       DATE NOT NULL DEFAULT current_date
+    amount          NUMERIC(10,2) NOT NULL CHECK (amount >= 0)
 );
 
-ALTER TABLE campaign_data.contribution ALTER COLUMN record_ts SET DEFAULT current_date;
+ALTER TABLE campaign_data.contribution ADD COLUMN record_ts DATE DEFAULT current_date;
 UPDATE campaign_data.contribution SET record_ts = current_date WHERE record_ts IS NULL;
 
 -- Sample data for contribution
@@ -72,11 +71,10 @@ CREATE TABLE IF NOT EXISTS campaign_data.volunteer (
     gender        TEXT CHECK (gender IN ('Male', 'Female', 'Other')) NOT NULL,  -- Gender restricted
     email         TEXT UNIQUE NOT NULL,
     phone         TEXT UNIQUE NOT NULL,
-    full_name     TEXT GENERATED ALWAYS AS (first_name || ' ' || last_name) STORED NOT NULL,
-    record_ts     DATE NOT NULL DEFAULT current_date
+    full_name     TEXT GENERATED ALWAYS AS (first_name || ' ' || last_name) STORED NOT NULL
 );
 
-ALTER TABLE campaign_data.volunteer ALTER COLUMN record_ts SET DEFAULT current_date;
+ALTER TABLE campaign_data.volunteer ADD COLUMN record_ts DATE DEFAULT current_date;
 UPDATE campaign_data.volunteer SET record_ts = current_date WHERE record_ts IS NULL;
 
 -- Sample data for volunteer
@@ -91,11 +89,11 @@ INSERT INTO campaign_data.volunteer (first_name, last_name, gender, email, phone
 CREATE TABLE IF NOT EXISTS campaign_data.volunteer_role (
     role_id          BIGSERIAL PRIMARY KEY,
     role_name        TEXT NOT NULL,
-    role_description TEXT,
-    record_ts        DATE NOT NULL DEFAULT current_date
+    role_description TEXT
 );
 
-ALTER TABLE campaign_data.volunteer_role ALTER COLUMN record_ts SET DEFAULT current_date;
+
+ALTER TABLE campaign_data.volunteer_role ADD COLUMN record_ts DATE DEFAULT current_date;
 UPDATE campaign_data.volunteer_role SET record_ts = current_date WHERE record_ts IS NULL;
 
 -- Sample data for volunteer_role
@@ -111,11 +109,10 @@ CREATE TABLE IF NOT EXISTS campaign_data.volunteer_assignment (
     role_id      BIGINT NOT NULL REFERENCES campaign_data.volunteer_role(role_id),
     start_date   DATE NOT NULL CHECK (start_date > '2000-01-01'),
     end_date     DATE,
-    PRIMARY KEY (volunteer_id, role_id),
-    record_ts    DATE NOT NULL DEFAULT current_date
+    PRIMARY KEY (volunteer_id, role_id)
 );
 
-ALTER TABLE campaign_data.volunteer_assignment ALTER COLUMN record_ts SET DEFAULT current_date;
+ALTER TABLE campaign_data.volunteer_assignment ADD COLUMN record_ts DATE DEFAULT current_date;
 UPDATE campaign_data.volunteer_assignment SET record_ts = current_date WHERE record_ts IS NULL;
 
 -- Sample data for volunteer_assignment
@@ -130,11 +127,10 @@ CREATE TABLE IF NOT EXISTS campaign_data.volunteer_event (
     event_id        BIGINT NOT NULL REFERENCES campaign_data.campaign_event(event_id),
     assigned_task   TEXT,
     hours_assigned  NUMERIC(4,1) CHECK (hours_assigned >= 0),  -- Enforcing no negative hours
-    PRIMARY KEY (volunteer_id, event_id),
-    record_ts       DATE NOT NULL DEFAULT current_date
+    PRIMARY KEY (volunteer_id, event_id)
 );
 
-ALTER TABLE campaign_data.volunteer_event ALTER COLUMN record_ts SET DEFAULT current_date;
+ALTER TABLE campaign_data.volunteer_event ADD COLUMN record_ts DATE DEFAULT current_date;
 UPDATE campaign_data.volunteer_event SET record_ts = current_date WHERE record_ts IS NULL;
 
 -- Sample data for volunteer_event
@@ -149,11 +145,10 @@ CREATE TABLE IF NOT EXISTS campaign_data.problem (
     event_id            BIGINT NOT NULL REFERENCES campaign_data.campaign_event(event_id),
     problem_description TEXT,
     date_reported       DATE NOT NULL CHECK (date_reported > '2000-01-01'),
-    severity            TEXT NOT NULL CHECK (severity IN ('Low', 'Medium', 'High')),
-    record_ts           DATE NOT NULL DEFAULT current_date
+    severity            TEXT NOT NULL CHECK (severity IN ('Low', 'Medium', 'High'))
 );
 
-ALTER TABLE campaign_data.problem ALTER COLUMN record_ts SET DEFAULT current_date;
+ALTER TABLE campaign_data.problem ADD COLUMN record_ts DATE DEFAULT current_date;
 UPDATE campaign_data.problem SET record_ts = current_date WHERE record_ts IS NULL;
 
 -- Sample data for problem
@@ -169,11 +164,10 @@ CREATE TABLE IF NOT EXISTS campaign_data.expense (
     expense_date   DATE NOT NULL CHECK (expense_date > '2000-01-01'),
     expense_amount NUMERIC(10,2) CHECK (expense_amount >= 0),
     category       TEXT NOT NULL,
-    payee          TEXT NOT NULL,
-    record_ts      DATE NOT NULL DEFAULT current_date
+    payee          TEXT NOT NULL
 );
 
-ALTER TABLE campaign_data.expense ALTER COLUMN record_ts SET DEFAULT current_date;
+ALTER TABLE campaign_data.expense  ADD COLUMN record_ts DATE DEFAULT current_date;
 UPDATE campaign_data.expense SET record_ts = current_date WHERE record_ts IS NULL;
 
 -- Sample data for expense
@@ -188,11 +182,10 @@ CREATE TABLE IF NOT EXISTS campaign_data.survey (
     event_id     BIGINT NOT NULL REFERENCES campaign_data.campaign_event(event_id),
     survey_name  TEXT NOT NULL,
     survey_date  DATE NOT NULL CHECK (survey_date > '2000-01-01'),
-    target_group TEXT,
-    record_ts    DATE NOT NULL DEFAULT current_date
+    target_group TEXT
 );
 
-ALTER TABLE campaign_data.survey ALTER COLUMN record_ts SET DEFAULT current_date;
+ALTER TABLE campaign_data.survey ADD COLUMN record_ts DATE DEFAULT current_date;
 UPDATE campaign_data.survey SET record_ts = current_date WHERE record_ts IS NULL;
 
 -- Sample data for survey
@@ -205,11 +198,10 @@ INSERT INTO campaign_data.survey (event_id, survey_name, survey_date, target_gro
 CREATE TABLE IF NOT EXISTS campaign_data.survey_question (
     question_id   BIGSERIAL PRIMARY KEY,
     survey_id     BIGINT NOT NULL REFERENCES campaign_data.survey(survey_id),
-    question_text TEXT NOT NULL,
-    record_ts     DATE NOT NULL DEFAULT current_date
+    question_text TEXT NOT NULL
 );
 
-ALTER TABLE campaign_data.survey_question ALTER COLUMN record_ts SET DEFAULT current_date;
+ALTER TABLE campaign_data.survey_question ADD COLUMN record_ts DATE DEFAULT current_date;
 UPDATE campaign_data.survey_question SET record_ts = current_date WHERE record_ts IS NULL;
 
 -- Sample data for survey_question
@@ -225,11 +217,10 @@ CREATE TABLE IF NOT EXISTS campaign_data.voter (
     last_name     TEXT NOT NULL,
     date_of_birth DATE NOT NULL,
     address       TEXT NOT NULL,
-    full_name     TEXT GENERATED ALWAYS AS (first_name || ' ' || last_name) STORED NOT NULL,
-    record_ts     DATE NOT NULL DEFAULT current_date
+    full_name     TEXT GENERATED ALWAYS AS (first_name || ' ' || last_name) STORED NOT NULL
 );
 
-ALTER TABLE campaign_data.voter ALTER COLUMN record_ts SET DEFAULT current_date;
+ALTER TABLE campaign_data.voter ADD COLUMN record_ts DATE DEFAULT current_date;
 UPDATE campaign_data.voter SET record_ts = current_date WHERE record_ts IS NULL;
 
 -- Sample data for voter
@@ -243,16 +234,14 @@ CREATE TABLE IF NOT EXISTS campaign_data.survey_response (
     response_id    BIGSERIAL PRIMARY KEY,
     question_id    BIGINT NOT NULL REFERENCES campaign_data.survey_question(question_id),
     voter_id       BIGINT NOT NULL REFERENCES campaign_data.voter(voter_id),
-    response_value TEXT NOT NULL,
-    record_ts      DATE NOT NULL DEFAULT current_date
+    response_value TEXT NOT null
 );
 
-ALTER TABLE campaign_data.survey_response ALTER COLUMN record_ts SET DEFAULT current_date;
+ALTER TABLE campaign_data.survey_response ADD COLUMN record_ts DATE DEFAULT current_date;
 UPDATE campaign_data.survey_response SET record_ts = current_date WHERE record_ts IS NULL;
 
 -- Sample data for survey_response
 INSERT INTO campaign_data.survey_response (question_id, voter_id, response_value) VALUES
 (1, 1, 'Very Good'),
 (2, 2, 'The panel discussion');
-
 
